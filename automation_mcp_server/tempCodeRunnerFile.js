@@ -1,0 +1,1 @@
+automation_mcp_server
