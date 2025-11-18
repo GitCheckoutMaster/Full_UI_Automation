@@ -1,88 +1,93 @@
+'''
+Main agent module which will orchestrates all other agents and tools to perform the desired automation task.
+'''
+
 import os
 import asyncio
 from dotenv import load_dotenv
-from google.adk.agents import Agent, LoopAgent, SequentialAgent
-from google.adk.models.google_llm import Gemini
-from google.adk.runners import InMemoryRunner
-from google.adk.tools import FunctionTool
-from google.adk.tools.mcp_tool.mcp_toolset import McpToolset
-from google.adk.tools.mcp_tool.mcp_session_manager import StdioConnectionParams
-from mcp import StdioServerParameters
+from application_mgmt_agent import software_mgmt_agent
+from file_mgmt_agent import file_management_agent
 
-# TODO: Agent is not exitting the loop on success, fix that.
-# TODO: Add this file to github repo.
+from google.adk.agents import Agent
+from google.adk.tools.agent_tool import AgentTool
+from google.adk.runners import Runner
+from google.genai.types import Content, Part
+from google.adk.sessions import InMemorySessionService
+from google.adk.apps.app import App
 
 load_dotenv()
-
 os.environ["GOOGLE_API_KEY"] = os.getenv("GOOGLE_API_KEY")
 
-def exit_loop():
-  return {"status": "SUCCESS", "message": "Application opened successfully exit the loop."}
-
-automation_toolset = McpToolset(
-	connection_params=StdioConnectionParams(
-		server_params=StdioServerParameters(
-			command="node",
-			args=[
-				"C:\\Users\\jaymi\\OneDrive\\Documents\\Programs\\Projects\\Complete UI Automation\\automation_mcp_server\\server.js"
-			],
-		)
-	)
-)
-
-starter_agent = Agent(
-	name="starter_agent",
-	model=Gemini(model="gemini-2.5-flash-lite"),
-	instruction=(
-		"You are an automation starter agent. "
-		"Your task is to use the open_software tool from automation_toolset to open software. "
-		"You must call the tool with JSON: {\"name\": \"software name\"}"
-	),
-	tools=[automation_toolset],
-	output_key="response"
-)
-
-checker_agent = Agent(
-	name="checker_agent",
-	model=Gemini(model="gemini-2.5-flash-lite"),
-	instruction=(
-		"Check if 'response' indicates success. "
-		"If software opened successfully, reply exactly 'SUCCESS'. "
-		"If not, reply exactly 'FAILURE: <error message>'."
-	),
-	output_key="checker_response"
-)
-
-retry_agent = Agent(
-    name="retry_agent",
-    model=Gemini(model="gemini-2.5-flash-lite"),
+main_agent = Agent(
+    name="jarvis",
+    model="gemini-2.5-flash-lite",
     instruction=(
-        "If checker_response is SUCCESS, **you must ONLY call the exit_loop function and do nothing else.** " 
-        "If checker_response starts with FAILURE, extract a better possible name and "
-        "retry using the open_software tool again. "
-        "You must always call open_software tool using JSON: {\"name\": \"corrected name\"}"
+        "Your name is jarvis. You are an advanced AI assistant and a friendly chatbot. "
+        "You must always be helpful and respectful towards humans. "
+        "You have access to file_management_agent which can read and write files. "
+        "\n\nIMPORTANT WORKFLOW:"
+        "\n1. When asked to read and analyze a file, first call file_management_agent to read it."
+        "\n2. After receiving the file content from file_management_agent, YOU must analyze it yourself."
+        "\n3. Always provide your analysis in a clear, conversational response."
+        "\n4. NEVER just pass through the tool's response - always add your own analysis and insights."
     ),
-    tools=[automation_toolset, FunctionTool(exit_loop)],
-    output_key="response"
+    tools=[AgentTool(agent=file_management_agent)],
 )
 
-loop_agent = LoopAgent(
-	name="automation_loop_agent",
-	sub_agents=[checker_agent, retry_agent],
-	max_iterations=5,
-)
+if __name__ == "__main__":
+    app = App(name="jarvis_app", root_agent=main_agent)
+    session_service = InMemorySessionService()
+    runner = Runner(session_service=session_service, app=app)
 
-root_agent = SequentialAgent(
-	name="root_automation_agent",
-	sub_agents=[starter_agent, loop_agent],
-)
+    async def main():
+        session_id = "session_001"
+        user_id = "user_jaymi"
+        
+        await session_service.create_session(session_id=session_id, user_id=user_id, app_name="jarvis_app")
+        
+        user_message = Content(
+            role="user",
+            parts=[Part(text="Read the file at C:\\Users\\jaymi\\OneDrive\\Documents\\test.txt and analyze its contents. Tell me if it's normal text or code, and if it's code, identify the programming language. Don't include the file content in your response - just your analysis.")],
+        )
+        
+        print("\n" + "="*50)
+        print("JARVIS CONVERSATION")
+        print("="*50 + "\n")
+        
+        events = []
+        last_model_text = None
+        
+        async for event in runner.run_async(
+            new_message=user_message,
+            session_id=session_id,
+            user_id=user_id
+        ):
+            events.append(event)
+            
+            # Capture the last model response with text
+            if event.content and event.content.role == 'model':
+                for part in event.content.parts:
+                    if hasattr(part, 'text') and part.text:
+                        last_model_text = part.text
+        
+        # Print the final response
+        if last_model_text:
+            print("JARVIS:")
+            print(last_model_text)
+        else:
+            print("No response generated")
+            print("\nDebug - All events:")
+            for i, event in enumerate(events):
+                print(f"\n Event {i}:")
+                print(f"  Author: {event.author}")
+                print(f"  Role: {event.content.role if event.content else 'None'}")
+                if event.content and event.content.parts:
+                    for j, part in enumerate(event.content.parts):
+                        part_type = type(part).__name__
+                        print(f"  Part {j}: {part_type}")
+                        if hasattr(part, 'text'):
+                            print(f"    Text: {part.text[:100] if part.text else 'None'}...")
+        
+        print("\n" + "="*50 + "\n")
 
-runner = InMemoryRunner(agent=root_agent)
-
-async def main():
-	print("\n===== PROCESS STARTED =====\n")
-	response = await runner.run_debug("open calcultor on my computer")
-	print("\n===== FINAL RESULT =====")
-	print(response)
-
-asyncio.run(main())
+    asyncio.run(main())
