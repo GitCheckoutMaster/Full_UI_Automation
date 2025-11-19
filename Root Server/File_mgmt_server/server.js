@@ -78,6 +78,50 @@ server.tool(
     }
 )
 
+server.tool(
+    "list_items",
+    "This tool lists all files and directories at the specified path. Provide the directory path as 'directory_path' to list its items.",
+    {
+        directory_path: z.string().describe("The path of the directory to list items from."),
+    },
+    async (input) => {
+        if (!input.directory_path) {
+            return { content: [{ type: "text", text: "Missing directory_path." }] };
+        }
+        try {
+            const command = `powershell.exe -ExecutionPolicy Bypass -File "C:\\Users\\jaymi\\OneDrive\\Documents\\Programs\\Projects\\Complete UI Automation\\Root Server\\File_mgmt_server\\tools\\list_items.ps1" -DirectoryPath "${input.directory_path}"`;
+            const result = await exec(command);
+            const response = JSON.parse(result.stdout.trim());
+
+            if (!response.success) {
+                return {
+                    content: [
+                        { type: "text", text: `Error listing items:\n${response.message}` }
+                    ]
+                };
+            }
+
+            return {
+                content: [
+                    {
+                        type: "text",
+                        text: JSON.stringify(response.data),
+                    }
+                ]
+            }
+        } catch (error) {
+            return {
+                content: [
+                    {
+                        type: "text",
+                        text: `Failed to list items: ${error.message}`,
+                    },
+                ],
+            };
+        }
+    }
+)
+
 server.connect(new StdioServerTransport())
     .then(() => {
     console.error("MCP Server is running...");

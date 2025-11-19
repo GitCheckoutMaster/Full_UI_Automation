@@ -47,7 +47,7 @@ if __name__ == "__main__":
         
         user_message = Content(
             role="user",
-            parts=[Part(text="Read the file at C:\\Users\\jaymi\\OneDrive\\Documents\\test.txt and analyze its contents. Tell me if it's normal text or code, and if it's code, identify the programming language. Don't include the file content in your response - just your analysis.")],
+            parts=[Part(text="can you list all video files in my downloads folders ( C:\\Users\\jaymi\\Downloads )?")],
         )
         
         print("\n" + "="*50)

@@ -33,6 +33,7 @@ file_management_agent = Agent(
         "When asked to read a file, use the read_file tool and return ONLY the file content. "
         "Do not analyze or interpret the content - just return it exactly as it is. "
         "Your response should be in this format: 'File content: [actual content here]'"
+        "When you are asked to list items in a directory, use the list_items tool and return ONLY the list of files. "
     ),
     tools=[file_management_toolset],
 )
