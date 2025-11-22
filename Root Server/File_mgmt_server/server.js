@@ -122,6 +122,50 @@ server.tool(
     }
 )
 
+server.tool(
+    "edit_file",
+    "This tool writes content to a specified file. Provide the file path as 'file_path' and the content as 'content' to write or edit the file.",
+    {
+        file_path: z.string().describe("The path of the file to write or edit."),
+        content: z.string().describe("The content to write into the file."),
+    },
+    async (input) => {
+        if (!input.file_path || !input.content) {
+            return { content: [{ type: "text", text: "Missing file_path or content." }] };
+        }
+        try {
+            const command = `powershell.exe -ExecutionPolicy Bypass -File "C:\\Users\\jaymi\\OneDrive\\Documents\\Programs\\Projects\\Complete UI Automation\\Root Server\\File_mgmt_server\\tools\\edit_file.ps1" -FilePath "${input.file_path}" -NewContent "${input.content.replace(/"/g, '\\"')}"`;
+            const result = await exec(command);
+            const response = JSON.parse(result.stdout.trim());
+            if (!response.success) {
+                return {
+                    content: [
+                        { type: "text", text: `Error writing or editing file:\n${response.message}` }
+                    ]
+                };
+            }
+
+            return {
+                content: [
+                    {
+                        type: "text",
+                        text: `File written/edited successfully.`,
+                    },
+                ],
+            };
+        } catch (error) {
+            return {
+                content: [
+                    {
+                        type: "text",
+                        text: `Failed to write or edit file: ${error.message}`,
+                    },
+                ],
+            };
+        }
+    }
+)
+
 server.connect(new StdioServerTransport())
     .then(() => {
     console.error("MCP Server is running...");

@@ -5,8 +5,7 @@ Main agent module which will orchestrates all other agents and tools to perform 
 import os
 import asyncio
 from dotenv import load_dotenv
-from agents.application_mgmt_agent import software_mgmt_agent
-from agents.file_mgmt_agent import file_management_agent
+from file_mgmt_agent import file_management_agent
 
 from google.adk.agents import Agent
 from google.adk.tools.agent_tool import AgentTool
@@ -17,31 +16,12 @@ from google.adk.apps.app import App
 from google.adk.tools import google_search
 
 load_dotenv()
-# os.environ["GOOGLE_API_KEY"] = os.getenv("GOOGLE_API_KEY")
 api_key = os.getenv("GOOGLE_API_KEY")
 if api_key:
     print("GOOGLE_API_KEY found and set: ", api_key[:4] + "..." )
     os.environ["GOOGLE_API_KEY"] = api_key
 else:
-    # IMPORTANT: You must handle the case where the key is missing.
-    # You should exit or log an error here.
     raise EnvironmentError("GOOGLE_API_KEY not found in .env file or environment.")
-
-# main_agent = Agent(
-#     name="jarvis",
-#     model="gemini-2.5-flash-lite",
-#     instruction=(
-#         "Your name is jarvis. You are an advanced AI assistant and a friendly chatbot. "
-#         "You must always be helpful and respectful towards humans. "
-#         "You have access to file_management_agent which can read and write files. "
-#         "\n\nIMPORTANT WORKFLOW:"
-#         "\n1. When asked to read and analyze a file, first call file_management_agent to read it."
-#         "\n2. After receiving the file content from file_management_agent, YOU must analyze it yourself."
-#         "\n3. Always provide your analysis in a clear, conversational response."
-#         "\n4. NEVER just pass through the tool's response - always add your own analysis and insights."
-#     ),
-#     tools=[AgentTool(agent=file_management_agent)],
-# )
 
 main_agent = Agent(
     name="jarvis",
@@ -77,14 +57,14 @@ jarvis_runner = Runner(session_service=session_service, app=app)
 if __name__ == "__main__":
 
     async def main():
-        session_id = "session_001"
+        session_id = "session_002"
         user_id = "user_jaymi"
         
         await session_service.create_session(session_id=session_id, user_id=user_id, app_name="jarvis_app")
         
         user_message = Content(
             role="user",
-            parts=[Part(text="my profile name is 'jaymi' so give me the list of video files in my downloads folder (use default downloads folder path in windows) and if the downloads folder have any test.txt file print the content of that file as well (do both or any one of my task)" )],
+            parts=[Part(text="my profile name is 'jaymi' so give me the list of text files in my downloads folder (use default downloads folder path in windows) and if the downloads folder have any test.txt file print the content of that file as well" )],
         )
         
         print("\n" + "="*50)
@@ -107,18 +87,21 @@ if __name__ == "__main__":
                     for part in event.content.parts:
                         if hasattr(part, 'text') and part.text:
                             last_model_text = part.text
+                            print(f"[DEBUG] Captured text: {last_model_text[:100]}")
         except Exception as e:
             print(f"An error occurred during the agent run: {e}")
+            import traceback
+            traceback.print_exc()
         
         # Print the final response
         if last_model_text:
-            print("JARVIS:")
+            print("\nJARVIS:")
             print(last_model_text)
         else:
             print("No response generated")
             print("\nDebug - All events:")
             for i, event in enumerate(events):
-                print(f"\n Event {i}:")
+                print(f"\nEvent {i}:")
                 print(f"  Author: {event.author}")
                 print(f"  Role: {event.content.role if event.content else 'None'}")
                 if event.content and event.content.parts:
@@ -127,6 +110,8 @@ if __name__ == "__main__":
                         print(f"  Part {j}: {part_type}")
                         if hasattr(part, 'text'):
                             print(f"    Text: {part.text[:100] if part.text else 'None'}...")
+                        if hasattr(part, 'tool_call'):
+                            print(f"    Tool call: {part.tool_call}")
         
         print("\n" + "="*50 + "\n")
 
