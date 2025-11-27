@@ -93,7 +93,7 @@ retry_agent = Agent(
         "You are a recovery and completion agent. Check the 'checker_response' field. "
         "\n"
         "IF SUCCESS ('SUCCESS'): "
-        "1. Call the exit_loop function to terminate the loop "
+        "1. Call the **exit_loop** function to terminate the loop "
         "2. Provide a comprehensive final response that includes: "
         "   - What operation was performed "
         "   - The result (file content, list of items, or confirmation of edit) "
@@ -149,7 +149,7 @@ if __name__ == "__main__":
         
         user_message = Content(
             role="user",
-            parts=[Part(text="(my windows profile name is 'jaymi') find test.txt file from downloads folder anyhow and print its content. I just looked in my file explorer, and the test.txt file is there (somewhere in downloads). This is your test." )],
+            parts=[Part(text="(my windows profile name is 'jaymi') find test.txt and print its content in downloads folder (check subdirectories)" )],
         )
         
         async for event in runner.run_async(

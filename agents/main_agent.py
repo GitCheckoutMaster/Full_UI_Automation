@@ -46,7 +46,7 @@ main_agent = Agent(
     2. VS Code Automation (via vs_code_agent):
     - OPEN FOLDER: Open a folder in Visual Studio Code.
     - OPEN FILE: Open a file in VS Code; if the file does not exist, create it.
-    - ENSURE CORRECT PATHS: Handle Windows paths safely and expand environment variables.
+    - GET SETTINGS: Retrieve current VS Code user settings as a JSON object.
 
     =====================
     HOW TO HANDLE USER REQUESTS
@@ -133,7 +133,7 @@ async def run_with_rate_limit_handling():
         role="user",
         parts=[
             Part(
-                text="open vs code in the Documents folder and create a new file called notes.txt (windows profile name is jaymi)"
+                text="list all video files in my Videos folder (profile name on windows is jaymi)"
             )
         ],
     )

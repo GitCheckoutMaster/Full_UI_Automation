@@ -33,16 +33,17 @@ vs_code_starter_agent = Agent(
         "Execute the requested VS Code operation using the available tools. "
 
         "OPENING FILES: Use the open_file tool with the exact file path. Confirm the file is opened in VS Code. "
-        "FORMAT: 'File opened successfully in VS Code. Path: [exact file path]' "
+        "GET SETTINGS: Use the get_settings tool to retrieve current VS Code user settings. "
+        # "FORMAT: 'File opened successfully in VS Code. Path: [exact file path]' "
 
-        "EDITING CODE: Use the edit_code tool to modify or append code in files. "
-        "FORMAT: 'Code updated successfully. Path: [path], Changes made: [what was changed]' "
+        # "EDITING CODE: Use the edit_code tool to modify or append code in files. "
+        # "FORMAT: 'Code updated successfully. Path: [path], Changes made: [what was changed]' "
 
-        "MANAGING PROJECTS: Use the manage_project tool to create, delete, or configure projects in VS Code. "
-        "FORMAT: 'Project [action] successfully. Project name: [project name]' "
+        # "MANAGING PROJECTS: Use the manage_project tool to create, delete, or configure projects in VS Code. "
+        # "FORMAT: 'Project [action] successfully. Project name: [project name]' "
 
-        "ERROR HANDLING: If an operation fails, clearly state the error and the path/file you were trying to access. "
-        "Do not attempt to fix errors yourself - let the retry_agent handle recovery. "
+        # "ERROR HANDLING: If an operation fails, clearly state the error and the path/file you were trying to access. "
+        # "Do not attempt to fix errors yourself - let the retry_agent handle recovery. "
 
         "CRITICAL: Always return raw content without interpretation or summarization."
     ),
@@ -82,7 +83,7 @@ vs_code_refiner_agent = Agent(
         "IF the [verification] output is 'SUCCESS', **call exit_loop** to end the refinement process. "
         "YOUR RESPONSE SHOULD BE THE REFINED INSTRUCTIONS ONLY, WITHOUT ANY ADDITIONAL COMMENTS."
     ),
-    tools=[exit_loop],
+    tools=[FunctionTool(exit_loop), vs_code_toolset],
     output_key="refined_instructions",
 )
 

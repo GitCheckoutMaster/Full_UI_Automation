@@ -53,6 +53,33 @@ server.tool(
     }
 )
 
+server.tool(
+    "get_settings",
+    "This tool retrieves the current VS Code settings as a JSON object.",
+    async () => {
+        try {
+            const command = `powershell.exe -ExecutionPolicy Bypass -File "C:\\Users\\jaymi\\OneDrive\\Documents\\Programs\\Projects\\Complete UI Automation\\Root Server\\VS_code_server\\tools\\fetch_settings.ps1"`;
+            const {stdout, stderr} = await exec(command);
+            const response = JSON.parse(stdout.trim());
+
+            if (!response.success) {
+                return {
+                    content: [
+                        {type: "text", text: `Error retrieving VS Code settings:\n${response.message}`},
+                    ],
+                };
+            }
+            return {
+                content: [
+                    {type: "text", text: `VS Code settings retrieved successfully:\n${JSON.stringify(response.data)}`},
+                ],
+            };
+        } catch (error) {
+            return {content: [{type: "text", text: `Error executing VS Code command: ${error.message}`}]};
+        }
+    }
+)
+
 server.connect(new StdioServerTransport())
     .then(() => {
     console.error("VS code MCP Server is running...");
