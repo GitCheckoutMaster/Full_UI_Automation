@@ -1,8 +1,1 @@
 === Server Started ===
-DEBUG: read_file called with: C:\Users\jaymi\Downloads\test.txt
-DEBUG: Executing command: powershell.exe -ExecutionPolicy Bypass -File "C:\Users\jaymi\OneDrive\Documents\Programs\Projects\Complete UI Automation\Root Server\File_mgmt_server\tools\read_file.ps1" -FilePath "C:\Users\jaymi\Downloads\test.txt"
-DEBUG: stdout: {"message":"File not found: C:\\Users\\jaymi\\Downloads\\test.txt","data":null,"success":false}
-
-DEBUG: stderr: 
-DEBUG: Parsed response: {"message":"File not found: C:\\Users\\jaymi\\Downloads\\test.txt","data":null,"success":false}
-DEBUG: Response not successful

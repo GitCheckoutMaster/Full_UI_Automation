@@ -27,7 +27,7 @@ server.tool(
             return {content: [{type: "text", text: "Missing file_path."}]};
         }
         try {
-            const command = `powershell.exe -ExecutionPolicy Bypass -File "C:\\Users\\jaymi\\OneDrive\\Documents\\Programs\\Projects\\Complete UI Automation\\Root Server\\VS_code_server\\tools\\open_file.ps1" -FilePath "${file_path}"`;
+            const command = `powershell.exe -ExecutionPolicy Bypass -File "C:\\Users\\jaymi\\OneDrive\\Documents\\Programs\\Projects\\Complete UI Automation\\Root Server\\VS_code_server\\tools\\open_file.ps1" -Path "${file_path}"`;
             const {stdout, stderr} = await exec(command);
             const response = JSON.parse(stdout.trim());
 
